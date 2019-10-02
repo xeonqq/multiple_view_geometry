@@ -1,6 +1,7 @@
+from math import *
 from cv2 import cv2
 import numpy as np
-from math import *
+from homogeneous_matrix import HomogeneousMatrix
 import matplotlib.pyplot as plt
 
 def create_rotation_mat_from_rpy(roll, pitch, yaw):
@@ -45,36 +46,6 @@ def normalize_homogeneous_coordinates(points):
 def translation_to_skew_symetric_mat(translation):
     a1, a2, a3 = translation
     return np.array([[0, -a3, a2],[a3, 0, -a1],[-a2, a1, 0]])
-
-class HomogeneousMatrix(object):
-    def __init__(self, mat):
-        self._mat = mat
-
-    @staticmethod
-    def create(translation, rotation):
-        homogeneous_mat = np.zeros((4,4));
-        homogeneous_mat[3,3] = 1
-        homogeneous_mat[:3,3] = np.asarray(translation)
-        homogeneous_mat[:3,:3] = rotation
-        return HomogeneousMatrix(homogeneous_mat)
-
-    @property
-    def mat(self):
-        return self._mat
-
-    @property
-    def rotation(self):
-        return self._mat[:3,:3]
-
-    @property
-    def translation(self):
-        return self._mat[:3,3]
-
-    def inv(self):
-        inverse_mat = np.copy(self._mat)
-        inverse_mat[:3,:3] = self.rotation.T
-        inverse_mat[:3,3] = -(self.rotation.T).dot(self.translation)
-        return inverse_mat
 
 class Camera(object):
     def __init__(self, extrinsic, f=350, image_resolution=(1024, 768)):
