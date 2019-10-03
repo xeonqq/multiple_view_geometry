@@ -5,10 +5,8 @@ import matplotlib.pyplot as plt
 from cube import Cube
 from camera import Camera
 from homogeneous_matrix import HomogeneousMatrix
+from linear_equation import LinearEquation
 from transform_utils import normalize_homogeneous_coordinates, create_rotation_mat_from_rpy, points_to_homogeneous_coordinates, translation_to_skew_symetric_mat
-
-class LinearEquation(object):
-    pass
 
 class Scene(object):
     def __init__(self, cube, cameras=[]):
@@ -43,12 +41,11 @@ class Scene(object):
 
         for p in lists_of_points_in_camera_frame[1].T:
             epipolar_line_in_camera0 = essential_matrix.dot(p)
-            a, b, c = epipolar_line_in_camera0
-            print (epipolar_line_in_camera0)
+            lineq = LinearEquation(epipolar_line_in_camera0)
             x1, x2 = -2, 2
-            line_start = np.array([x1, (-c-x1*a)/b, 1])
+            line_start = np.array([x1, lineq.solve_y(x1), 1])
             line_start = normalize_homogeneous_coordinates(self._cameras[0].intrinsic[:,:3].dot(line_start))
-            line_end = np.array([x2, (-c-x2*a)/b, 1])
+            line_end = np.array([x2, lineq.solve_y(x2), 1])
             line_end = normalize_homogeneous_coordinates(self._cameras[0].intrinsic[:,:3].dot(line_end))
             line = np.vstack((line_start, line_end))
             axes[0].plot(line[:,0], line[:,1])
