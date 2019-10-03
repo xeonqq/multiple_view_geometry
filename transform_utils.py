@@ -17,16 +17,6 @@ def create_rotation_mat_from_rpy(roll, pitch, yaw):
     R = Rz.dot(Ry.dot(Rx))
     return R
 
-def create_cube_key_points(base_point, dimensions, resolution):
-    # create 3 * width points in matrix form
-    x0, y0, z0 = base_point
-    dim_x, dim_y, dim_z = dimensions
-    x, y, z = np.meshgrid(np.arange(x0,x0+dim_x+1, resolution),
-            np.arange(y0,y0+dim_y+1, resolution),
-            np.arange(z0,z0+dim_z+1, resolution))
-    key_points = np.vstack([x.ravel(), y.ravel(), z.ravel()])
-    return key_points
-
 def points_to_homogeneous_coordinates(points):
     dim, num = points.shape
     return np.vstack((points, np.ones((1, num))))

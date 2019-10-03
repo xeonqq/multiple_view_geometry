@@ -2,17 +2,19 @@ from cv2 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
+from cube import Cube
 from camera import Camera
 from homogeneous_matrix import HomogeneousMatrix
-from transform_utils import normalize_homogeneous_coordinates, create_rotation_mat_from_rpy, create_cube_key_points, points_to_homogeneous_coordinates, translation_to_skew_symetric_mat
+from transform_utils import normalize_homogeneous_coordinates, create_rotation_mat_from_rpy, points_to_homogeneous_coordinates, translation_to_skew_symetric_mat
 
 class Scene(object):
-    def __init__(self):
-        camera1_extrinsic = HomogeneousMatrix.create([2.2,0.5,0.5], create_rotation_mat_from_rpy(-np.pi/2, 0, -np.pi/4))
+    def __init__(self, cube, cameras=[]):
+        self._cube = cube
+        camera1_extrinsic = HomogeneousMatrix.create([1.7,0.0,0.5], create_rotation_mat_from_rpy(-np.pi/2, 0, -np.pi/4))
         self._camera1 = Camera(camera1_extrinsic)
-        camera2_extrinsic = HomogeneousMatrix.create([2.7,0.0,0.5], create_rotation_mat_from_rpy(-np.pi/2, 0.0, 0))
+        camera2_extrinsic = HomogeneousMatrix.create([2.3,0.0,0.5], create_rotation_mat_from_rpy(-np.pi/2, 0.0, 0))
         self._camera2 = Camera(camera2_extrinsic)
-        self._key_points_cube = create_cube_key_points((2,3,0),(1,1,1), 1)
+        self._key_points_cube = cube.surfaces()
 
         fig, (ax1, ax2) = plt.subplots(1, 2)
         fig.suptitle('keypoints in image frame')
@@ -48,11 +50,12 @@ class Scene(object):
             line_end = np.array([x2, (-c-x2*a)/b, 1])
             line_end = normalize_homogeneous_coordinates(self._camera2.intrinsic[:,:3].dot(line_end))
             line = np.vstack((line_start, line_end))
-            ax1.plot(line[:,0], line[:,1])
+            #ax1.plot(line[:,0], line[:,1])
 
 
 
 if __name__ == '__main__':
-    scene = Scene()
+    cube = Cube((2,3,0), (2,2,2), resolution=1)
+    scene = Scene(cube)
     plt.show()
 
