@@ -20,9 +20,7 @@ class Cube(object):
         x, y ,z = self._base_point
         surface_xz = self._surfaces(self._base_point, (dim_x, 0, dim_z))
         surface_zy = self._surfaces((x, y+1, z), (0, dim_y-1, dim_z))
-        print(surface_xz, surface_zy)
         key_points = np.hstack((surface_xz, surface_zy))
-        print (key_points)
         return key_points
 
 

@@ -10,52 +10,54 @@ from transform_utils import normalize_homogeneous_coordinates, create_rotation_m
 class Scene(object):
     def __init__(self, cube, cameras=[]):
         self._cube = cube
-        camera1_extrinsic = HomogeneousMatrix.create([1.7,0.0,0.5], create_rotation_mat_from_rpy(-np.pi/2, 0, -np.pi/4))
-        self._camera1 = Camera(camera1_extrinsic)
-        camera2_extrinsic = HomogeneousMatrix.create([2.3,0.0,0.5], create_rotation_mat_from_rpy(-np.pi/2, 0.0, 0))
-        self._camera2 = Camera(camera2_extrinsic)
-        self._key_points_cube = cube.surfaces()
+        self._cameras = cameras
 
-        fig, (ax1, ax2) = plt.subplots(1, 2)
+    def project(self, colors=[], show_plot=True):
+        assert len(colors) == len(self._cameras)
+        fig, axes = plt.subplots(1, len(self._cameras))
         fig.suptitle('keypoints in image frame')
-        points_in_camera1, points_in_image_frame1= self._camera1.project(points_to_homogeneous_coordinates(self._key_points_cube), ax1, 'red')
-        points_in_camera2, points_in_image_frame2 = self._camera2.project(points_to_homogeneous_coordinates(self._key_points_cube), ax2, 'blue')
 
-        #print(self._camera1.extrinsic.mat)
-        #print(self._camera1.extrinsic.inv())
-        #print(self._camera2.extrinsic.mat)
-        tf_cam2_wrt_cam1 = self._camera1.extrinsic.inv().dot(self._camera2.extrinsic.mat) # the translation from it is not very correct
-        #tf_cam1_wrt_cam2 = self._camera2.extrinsic.inv().dot(self._camera1.extrinsic.mat)
+        lists_of_points_in_camera_frame = []
+        lists_of_points_in_image_frame = []
+        key_points_cube = cube.surfaces()
+        homogeneous_key_points_cube = points_to_homogeneous_coordinates(key_points_cube)
+        for camera, color, ax in zip(self._cameras, colors, axes):
+            points_in_camera_frame, points_in_image_frame = camera.project(homogeneous_key_points_cube, ax, color, show_plot)
+            lists_of_points_in_camera_frame.append(points_in_camera_frame)
+            lists_of_points_in_image_frame.append(points_in_image_frame)
 
-        #print (tf_cam2_wrt_cam1)
-        #print (tf_cam1_wrt_cam2)
+        # tf_cam1_wrt_cam0 = tf_world_wrt_cam0 * tf_cam1_wrt_world
+        tf_cam1_wrt_cam0 = self._cameras[0].extrinsic.inv().dot(self._cameras[1].extrinsic.mat)
 
-        #hack:
-        #tf_cam2_wrt_cam1[:3,3] = -tf_cam1_wrt_cam2[:3,3]
+        R_cam1_wrt_cam0 = tf_cam1_wrt_cam0[:3,:3]
+        T_cam1_wrt_cam0 = tf_cam1_wrt_cam0[:3,3]
 
-        R_cam2_wrt_cam1 = tf_cam2_wrt_cam1[:3,:3]
-        T_cam2_wrt_cam1 = tf_cam2_wrt_cam1[:3,3]
-        print(points_in_camera2[:,0])
-        print(translation_to_skew_symetric_mat(T_cam2_wrt_cam1))
-        print(R_cam2_wrt_cam1)
-
-        print(points_in_camera2)
-        for p in points_in_camera2.T:
-            epipolar_line_in_camera1 = translation_to_skew_symetric_mat(T_cam2_wrt_cam1).dot(R_cam2_wrt_cam1).dot(p)
-            a, b, c = epipolar_line_in_camera1
-            print (epipolar_line_in_camera1)
+        for p in lists_of_points_in_camera_frame[1].T:
+            # because of epipolar geometry
+            # p0*E*p1 = 0
+            # E = t x R
+            # Essential matrix = T_cam1_wrt_cam0 cross multiply R_cam1_wrt_cam0
+            epipolar_line_in_camera0 = translation_to_skew_symetric_mat(T_cam1_wrt_cam0).dot(R_cam1_wrt_cam0).dot(p)
+            a, b, c = epipolar_line_in_camera0
+            print (epipolar_line_in_camera0)
             x1, x2 = -2, 2
             line_start = np.array([x1, (-c+x1*a)/b, 1])
-            line_start = normalize_homogeneous_coordinates(self._camera2.intrinsic[:,:3].dot(line_start))
+            line_start = normalize_homogeneous_coordinates(self._cameras[0].intrinsic[:,:3].dot(line_start))
             line_end = np.array([x2, (-c-x2*a)/b, 1])
-            line_end = normalize_homogeneous_coordinates(self._camera2.intrinsic[:,:3].dot(line_end))
+            line_end = normalize_homogeneous_coordinates(self._cameras[0].intrinsic[:,:3].dot(line_end))
             line = np.vstack((line_start, line_end))
-            #ax1.plot(line[:,0], line[:,1])
+            axes[0].plot(line[:,0], line[:,1])
 
 
 
 if __name__ == '__main__':
+    camera1_extrinsic = HomogeneousMatrix.create([1.7,0.0,0.5], create_rotation_mat_from_rpy(-np.pi/2, 0, -np.pi/4))
+    camera1 = Camera(camera1_extrinsic)
+    camera2_extrinsic = HomogeneousMatrix.create([2.3,0.0,0.5], create_rotation_mat_from_rpy(-np.pi/2, 0.0, 0))
+    camera2 = Camera(camera2_extrinsic)
+
     cube = Cube((2,3,0), (2,2,2), resolution=1)
-    scene = Scene(cube)
+    scene = Scene(cube, [camera1, camera2])
+    scene.project(['red', 'blue'])
     plt.show()
 
