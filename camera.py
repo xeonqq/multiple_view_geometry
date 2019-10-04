@@ -1,29 +1,22 @@
 import numpy as np
 from transform_utils import normalize_homogeneous_coordinates
 
-camera_id = -1
-
-def generate_id():
-    global camera_id
-    camera_id += 1
-    return camera_id
-
 class Camera(object):
-    def __init__(self, extrinsic, f=350, image_resolution=(1024, 768)):
-        self._id = generate_id()
+    def __init__(self, name, extrinsic, f=350, image_resolution=(1024, 768)):
         self._extrinsic = extrinsic # camera wrt world
         self._f = f # in pixel
         u0, v0 = np.array(image_resolution)/2
         self._image_resolution = image_resolution
         self._intrinsic = np.array([[f, 0, u0, 0], [0, f, v0, 0], [0,0,1,0]])
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name
 
     @property
     def image_resolution(self):
         return self._image_resolution
-
-    @property
-    def id(self):
-        return self._id
 
     @property
     def intrinsic(self):
