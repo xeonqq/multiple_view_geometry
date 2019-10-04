@@ -4,30 +4,10 @@ import matplotlib.pyplot as plt
 
 from cube import Cube
 from camera import Camera
+from camera_image_renderer import CameraImageRenderer
 from homogeneous_matrix import HomogeneousMatrix
 from linear_equation import LinearEquation
 from transform_utils import normalize_homogeneous_coordinates, create_rotation_mat_from_rpy, points_to_homogeneous_coordinates, translation_to_skew_symetric_mat
-
-class CameraImageRenderer(object):
-    def __init__(self, cameras_with_color, show_image_frame, show_epipolar_lines):
-        self._show_image_frame = show_image_frame
-        self._show_epipolar_lines = show_epipolar_lines
-        self._fig, self._axes = plt.subplots(1, len(cameras_with_color))
-        self._cameras_with_color = cameras_with_color
-        self._fig.suptitle('keypoints in image frame')
-
-    def render_image_frame_in_camera(self, points_in_image_frame, camera):
-        if self._show_image_frame:
-            self._axes[camera.id].set_xlim(0, camera.image_resolution[0])
-            self._axes[camera.id].set_ylim(0, camera.image_resolution[1])
-            self._axes[camera.id].set_title('image frame in camera {}'.format(camera.id))
-            self._axes[camera.id].plot(points_in_image_frame[0,:], points_in_image_frame[1,:], 'o', color=self._cameras_with_color[camera])
-
-    def render_epipolar_line(self, line_end_points, camera):
-        if self._show_epipolar_lines:
-            self._axes[camera.id].plot(line_end_points[:,0], line_end_points[:,1])
-            plt.waitforbuttonpress(0.1)
-            plt.draw()
 
 class Scene(object):
     def __init__(self, cube, cameras, renderer):
