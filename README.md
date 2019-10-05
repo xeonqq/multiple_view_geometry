@@ -11,3 +11,12 @@
 
 ### Demo
 ![](imgs/epipolar_line.gif)
+
+### Command to run the demo:
+```bash
+python ./epipolar_geometry.py
+```
+or interact with the notebook
+```bash
+jupyter notebook epipolar_geometry.ipynb
+```
