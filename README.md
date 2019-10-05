@@ -1,4 +1,5 @@
 ## Demo on how to calculate epipolar line
+[![Build Status](https://travis-ci.com/xeonqq/epipolar_geometry.svg?branch=master)](https://travis-ci.com/xeonqq/epipolar_geometry)
 
 ### Given: 
 * The two camera positions in world frame, 
