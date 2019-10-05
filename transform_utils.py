@@ -18,9 +18,9 @@ def create_rotation_mat_from_rpy(roll, pitch, yaw):
     R = Rz.dot(Ry.dot(Rx))
     return R
 
-def points_to_homogeneous_coordinates(points):
+def points_to_homogeneous_coordinates(points, homogeneous_value=1):
     dim, num = points.shape
-    return np.vstack((points, np.ones((1, num))))
+    return np.vstack((points, np.full((1, num), homogeneous_value)))
 
 def normalize_homogeneous_coordinates(points):
     normalized_points = []
@@ -61,4 +61,25 @@ def calculate_essential_matrix(camera1, camera0):
     essential_matrix = translation_to_skew_symetric_mat(T_cam1_wrt_cam0).dot(R_cam1_wrt_cam0)
     return essential_matrix
 
+def calculate_direction_vecs_in_world_frame(points_in_image_frame, camera):
+    points_normalized_to_pixel_center = points_in_image_frame - camera.pixel_center[:,np.newaxis]
+    homogeneous_points_in_camera_frame = points_to_homogeneous_coordinates(points_normalized_to_pixel_center, camera.focal_length_in_pixels)/camera.focal_length_in_pixels
+    homogeneous_points_in_camera_frame = points_to_homogeneous_coordinates(homogeneous_points_in_camera_frame)
+    homogeneous_points_in_world_frame = camera.extrinsic.mat.dot(homogeneous_points_in_camera_frame)
+    points_in_world_frame = normalize_homogeneous_coordinates(homogeneous_points_in_world_frame)[:3,:]
+    direction_vectors = points_in_world_frame - camera.extrinsic.translation[:, np.newaxis]
+    return direction_vectors
+
+def triangulate(start_points0, direction_vecs0, start_points1, direction_vecs1):
+    # for calculating intersection of 3d lines
+    # refer to http://geomalgorithms.com/a05-_intersect-1.html
+    perpendicular_vecs = np.cross(direction_vecs0.T, direction_vecs1.T)
+    vecs_perpendicular_to_vecs0 = np.cross(perpendicular_vecs, direction_vecs0.T).T
+    w = start_points1 - start_points0
+    numerator = np.sum(-vecs_perpendicular_to_vecs0 * w[:,np.newaxis],axis=0)
+    denominator =  np.sum(vecs_perpendicular_to_vecs0 * direction_vecs1,axis=0)
+    ss = numerator / denominator
+    intersection_points = start_points1[:,np.newaxis] + direction_vecs1 * ss
+
+    return intersection_points
 

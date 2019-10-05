@@ -15,12 +15,20 @@ class Camera(object):
         return self._name
 
     @property
+    def focal_length_in_pixels(self):
+        return self._f
+
+    @property
     def image_resolution(self):
         return self._image_resolution
 
     @property
     def intrinsic(self):
         return self._intrinsic
+
+    @property
+    def pixel_center(self):
+        return np.array([self._intrinsic[0,2], self._intrinsic[1,2]])
 
     @property
     def extrinsic(self):
