@@ -6,7 +6,7 @@ class Scene(object):
         self._cameras = cameras
         self._renderer = renderer
 
-    def project(self):
+    def project(self, interactive=False):
         lists_of_points_in_camera_frame = []
         lists_of_points_in_image_frame = []
         key_points_cube = self._cube.surfaces()
@@ -21,12 +21,12 @@ class Scene(object):
 
         for p in lists_of_points_in_camera_frame[1].T:
             line = calculate_epipolar_line_on_other_image(p, essential_matrix_cam1, self._cameras[0])
-            self._renderer.render_epipolar_line(line, self._cameras[0])
+            self._renderer.render_epipolar_line(line, self._cameras[0], interactive)
 
         essential_matrix_cam0 = calculate_essential_matrix(self._cameras[0], self._cameras[1])
         for p in lists_of_points_in_camera_frame[0].T:
             line = calculate_epipolar_line_on_other_image(p, essential_matrix_cam0, self._cameras[1])
-            self._renderer.render_epipolar_line(line, self._cameras[1])
+            self._renderer.render_epipolar_line(line, self._cameras[1], interactive)
 
 
 

@@ -16,10 +16,11 @@ class CameraImageRenderer(object):
             self._camera_to_ax[camera].set_title('image frame in camera {}'.format(camera.name))
             self._camera_to_ax[camera].plot(points_in_image_frame[0,:], points_in_image_frame[1,:], 'o', color=self._cameras_with_color[camera])
 
-    def render_epipolar_line(self, line_end_points, camera):
+    def render_epipolar_line(self, line_end_points, camera, interactive=False):
         if self._show_epipolar_lines:
             self._camera_to_ax[camera].plot(line_end_points[:,0], line_end_points[:,1])
-            #plt.waitforbuttonpress(0.1)
-            #plt.draw()
+            if interactive:
+                plt.waitforbuttonpress(0.2)
+                plt.draw()
 
 
