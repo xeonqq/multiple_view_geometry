@@ -54,8 +54,8 @@ def calculate_essential_matrix(camera1, camera0):
     R_cam1_wrt_cam0 = tf_cam1_wrt_cam0[:3,:3]
     T_cam1_wrt_cam0 = tf_cam1_wrt_cam0[:3,3]
 
-    # because of epipolar geometry
-    # p0*E*p1 = 0
+    # because of epipolar constraint
+    # p0.T*E*p1 = 0, refer to https://www.youtube.com/watch?v=9fvopDHdrFg for derivation
     # Essential matrix = T_cam1_wrt_cam0 cross multiply R_cam1_wrt_cam0
     # E = t x R
     essential_matrix = translation_to_skew_symetric_mat(T_cam1_wrt_cam0).dot(R_cam1_wrt_cam0)
@@ -82,4 +82,14 @@ def triangulate(start_points0, direction_vecs0, start_points1, direction_vecs1):
     intersection_points = start_points1[:,np.newaxis] + direction_vecs1 * ss
 
     return intersection_points
+
+def reconstruct_3d_points(points_in_image_frame0, camera0, points_in_image_frame1, camera1):
+    dir_vecs0 = calculate_direction_vecs_in_world_frame( \
+        points_in_image_frame0, camera0)
+    dir_vecs1 = calculate_direction_vecs_in_world_frame( \
+        points_in_image_frame1, camera1)
+    points_3d = triangulate(camera0.extrinsic.translation, dir_vecs0, \
+        camera1.extrinsic.translation, dir_vecs1)
+    return points_3d
+
 

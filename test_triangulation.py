@@ -5,7 +5,7 @@ from cube import Cube
 from camera import Camera
 from homogeneous_matrix import HomogeneousMatrix
 from transform_utils import create_rotation_mat_from_rpy, points_to_homogeneous_coordinates, \
-        calculate_direction_vecs_in_world_frame, triangulate
+        triangulate, reconstruct_3d_points
 
 
 class TestTriangulation(unittest.TestCase):
@@ -34,12 +34,9 @@ class TestTriangulation(unittest.TestCase):
         np.testing.assert_array_equal(point_3d.ravel(), np.array([25/4.0, 25/4.0, 9/2.0]))
 
     def test_given_cooresponding_points_in_image_frame_and_camera_extrinsic_then_3d_point_in_world_can_be_triangulated(self):
-        dir_vecs0 = calculate_direction_vecs_in_world_frame( \
-                self._points_in_image_frame0, self._camera0)
-        dir_vecs1 = calculate_direction_vecs_in_world_frame( \
+        points_3d = reconstruct_3d_points( \
+                self._points_in_image_frame0, self._camera0, \
                 self._points_in_image_frame1, self._camera1)
-        points_3d = triangulate(self._camera0.extrinsic.translation, dir_vecs0, \
-                self._camera1.extrinsic.translation, dir_vecs1)
         np.testing.assert_array_almost_equal(points_3d, self._key_points_cube)
 
 if __name__ == '__main__':
