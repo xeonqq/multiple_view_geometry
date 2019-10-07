@@ -2,7 +2,7 @@ import unittest
 import numpy as np
 
 from scene_fixture import SceneFixture
-from transform_utils import solve_essential_matrix, calculate_essential_matrix
+from algorithm import solve_essential_matrix, calculate_essential_matrix
 
 class TestEightPointAlgorithm(SceneFixture):
     def test_eight_point_algorithm(self):

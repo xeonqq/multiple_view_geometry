@@ -1,4 +1,5 @@
-from transform_utils import normalize_homogeneous_coordinates, points_to_homogeneous_coordinates, translation_to_skew_symetric_mat, calculate_epipolar_line_on_other_image, calculate_essential_matrix
+from transform_utils import normalize_homogeneous_coordinates, points_to_homogeneous_coordinates, translation_to_skew_symetric_mat
+from algorithm import calculate_epipolar_line_on_other_image, calculate_essential_matrix
 
 class Scene(object):
     def __init__(self, cube, cameras, renderer):

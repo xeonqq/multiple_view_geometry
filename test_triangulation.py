@@ -2,7 +2,8 @@ import unittest
 import numpy as np
 
 from scene_fixture import SceneFixture
-from transform_utils import triangulate, reconstruct_3d_points
+from algorithm import triangulate, reconstruct_3d_points
+
 
 class TestTriangulation(SceneFixture):
     def test_triangulate_function(self):

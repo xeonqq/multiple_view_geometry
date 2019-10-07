@@ -5,6 +5,8 @@ from cube import Cube
 from camera import Camera
 from homogeneous_matrix import HomogeneousMatrix
 from transform_utils import create_rotation_mat_from_rpy, points_to_homogeneous_coordinates
+from algorithm import solve_essential_matrix
+
 
 class SceneFixture(unittest.TestCase):
     def setUp(self):
