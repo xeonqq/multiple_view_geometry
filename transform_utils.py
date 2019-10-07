@@ -62,8 +62,7 @@ def calculate_essential_matrix(camera1, camera0):
     return essential_matrix
 
 def calculate_direction_vecs_in_world_frame(points_in_image_frame, camera):
-    points_normalized_to_pixel_center = points_in_image_frame - camera.pixel_center[:,np.newaxis]
-    homogeneous_points_in_camera_frame = points_to_homogeneous_coordinates(points_normalized_to_pixel_center, camera.focal_length_in_pixels)/camera.focal_length_in_pixels
+    homogeneous_points_in_camera_frame = camera.points_2d_to_homogeneous_coordinates(points_in_image_frame)
     homogeneous_points_in_camera_frame = points_to_homogeneous_coordinates(homogeneous_points_in_camera_frame)
     homogeneous_points_in_world_frame = camera.extrinsic.mat.dot(homogeneous_points_in_camera_frame)
     points_in_world_frame = normalize_homogeneous_coordinates(homogeneous_points_in_world_frame)[:3,:]
@@ -92,4 +91,19 @@ def reconstruct_3d_points(points_in_image_frame0, camera0, points_in_image_frame
         camera1.extrinsic.translation, dir_vecs1)
     return points_3d
 
-
+def solve_essential_matrix(points_in_image_frame0, camera0, points_in_image_frame1, camera1):
+    # we are not going to use the extrinsic matrix from the cameras here, but we need to deduce them from the points in image frame
+    # A*Vec(E) = 0
+    # A is a matrix stacked with Kronecker product of (p0, p1)
+    homogeneous_points_in_camera_frame0 = camera0.points_2d_to_homogeneous_coordinates(points_in_image_frame0)
+    homogeneous_points_in_camera_frame1 = camera1.points_2d_to_homogeneous_coordinates(points_in_image_frame1)
+    A = np.array([np.kron(point1, point0) for point0, point1 in zip(homogeneous_points_in_camera_frame0.T, homogeneous_points_in_camera_frame1.T)])
+    assert np.linalg.matrix_rank(A) == 8
+    _, s, vh = np.linalg.svd(A)
+    index = np.argwhere(np.isclose(s,0))
+    E_vec= (vh.T)[:,index[0,0]]
+    E_est = E_vec.reshape((3,3)).T
+    u, _, vh = np.linalg.svd(E_est)
+    s = np.diag([1,1,0])
+    projected_E_on_essential_space = u.dot(s).dot(vh)
+    return projected_E_on_essential_space

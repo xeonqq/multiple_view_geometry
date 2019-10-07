@@ -1,5 +1,5 @@
 import numpy as np
-from transform_utils import normalize_homogeneous_coordinates
+from transform_utils import normalize_homogeneous_coordinates, points_to_homogeneous_coordinates
 
 class Camera(object):
     def __init__(self, name, extrinsic, f=350, image_resolution=(1024, 768)):
@@ -41,5 +41,9 @@ class Camera(object):
         image = np.zeros(self._image_resolution)
 
         return key_points_wrt_camera[:3,:], points_in_image_frame
+
+    def points_2d_to_homogeneous_coordinates(self, points_2d):
+        points_in_homogeneous_coordinates = points_to_homogeneous_coordinates(points_2d - self.pixel_center[:,np.newaxis], self._f)
+        return points_in_homogeneous_coordinates/self._f
 
 

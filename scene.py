@@ -18,7 +18,6 @@ class Scene(object):
             self._renderer.render_image_frame_in_camera(points_in_image_frame, camera)
 
         essential_matrix_cam1 = calculate_essential_matrix(self._cameras[1], self._cameras[0])
-
         for p in lists_of_points_in_camera_frame[1].T:
             line = calculate_epipolar_line_on_other_image(p, essential_matrix_cam1, self._cameras[0])
             self._renderer.render_epipolar_line(line, self._cameras[0], interactive)

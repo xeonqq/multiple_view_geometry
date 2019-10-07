@@ -17,7 +17,6 @@ if __name__ == '__main__':
     cube = Cube((2,3,0), (2,2,2), resolution=1)
     renderer = CameraImageRenderer({camera0: 'red', camera1: 'blue'}, show_image_frame=True, show_epipolar_lines=True)
     scene = Scene(cube, [camera0, camera1], renderer)
-    plt.waitforbuttonpress(-1)
     scene.project(True)
     plt.waitforbuttonpress(-1)
 
