@@ -37,15 +37,15 @@ class Camera(object):
         return self._extrinsic
 
     def project(self, key_points):
-        key_points_wrt_camera = self.world_frame_to_camera_frame(key_points)
-        points_in_image_frame = normalize_homogeneous_coordinates(self._intrinsic.dot(key_points_wrt_camera))
+        homogeneous_key_points_wrt_camera = self.world_frame_to_camera_frame(key_points)
+        points_in_image_frame = normalize_homogeneous_coordinates(self._intrinsic.dot(homogeneous_key_points_wrt_camera))
 
-        return key_points_wrt_camera[:3,:], points_in_image_frame
+        return homogeneous_key_points_wrt_camera[:3,:], points_in_image_frame
 
     def world_frame_to_camera_frame(self, key_points):
         homogeneous_key_points = points_to_homogeneous_coordinates(key_points)
-        key_points_wrt_camera = self._extrinsic.inv().dot(homogeneous_key_points)
-        return key_points_wrt_camera
+        homogeneous_key_points_wrt_camera = self._extrinsic.inv().dot(homogeneous_key_points)
+        return homogeneous_key_points_wrt_camera
 
     def points_2d_to_homogeneous_coordinates(self, points_2d):
         points_in_homogeneous_coordinates = points_to_homogeneous_coordinates(points_2d - self.pixel_center[:,np.newaxis], self._f)
