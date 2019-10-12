@@ -1,4 +1,4 @@
-from transform_utils import normalize_homogeneous_coordinates, points_to_homogeneous_coordinates, translation_to_skew_symetric_mat
+from transform_utils import normalize_homogeneous_coordinates, translation_to_skew_symetric_mat
 from algorithm import calculate_epipolar_line_on_other_image, calculate_essential_matrix
 
 class Scene(object):
@@ -11,9 +11,8 @@ class Scene(object):
         lists_of_points_in_camera_frame = []
         lists_of_points_in_image_frame = []
         key_points_cube = self._cube.surfaces()
-        homogeneous_key_points_cube = points_to_homogeneous_coordinates(key_points_cube)
         for camera in self._cameras:
-            points_in_camera_frame, points_in_image_frame = camera.project(homogeneous_key_points_cube)
+            points_in_camera_frame, points_in_image_frame = camera.project(key_points_cube)
             lists_of_points_in_camera_frame.append(points_in_camera_frame)
             lists_of_points_in_image_frame.append(points_in_image_frame)
             self._renderer.render_image_frame_in_camera(points_in_image_frame, camera)

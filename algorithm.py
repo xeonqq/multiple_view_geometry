@@ -88,3 +88,8 @@ def reconstruct_translation_and_rotation_from_svd_of_essential_matrix(u, s, vh):
     R2 = u.dot(Rz_neg.T).dot(vh)
     return T1, R1, T2, R2
 
+def structure_from_motion(homo_points_in_image0, homo_points_in_image1, transform_cam1_wrt_cam0):
+
+    T = transform_cam1_wrt_cam0.translation
+    R = transform_cam1_wrt_cam0.rotation
+    return []
