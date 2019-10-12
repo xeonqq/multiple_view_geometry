@@ -1,4 +1,5 @@
 import numpy as np
+from homogeneous_matrix import HomogeneousMatrix
 from transform_utils import normalize_homogeneous_coordinates, points_to_homogeneous_coordinates
 
 class Camera(object):
@@ -46,4 +47,8 @@ class Camera(object):
         points_in_homogeneous_coordinates = points_to_homogeneous_coordinates(points_2d - self.pixel_center[:,np.newaxis], self._f)
         return points_in_homogeneous_coordinates/self._f
 
-
+    def get_transform_wrt(self, other_camera):
+        # self in this case is cam1
+        # tf_cam1_wrt_cam0 = tf_world_wrt_cam0 * tf_cam1_wrt_world
+        tf_wrt_other_camera = other_camera.extrinsic.inv().dot(self.extrinsic.mat)
+        return HomogeneousMatrix(tf_wrt_other_camera)
