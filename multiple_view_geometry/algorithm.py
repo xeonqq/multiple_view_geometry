@@ -89,7 +89,19 @@ def reconstruct_translation_and_rotation_from_svd_of_essential_matrix(u, s, vh):
     return T1, R1, T2, R2
 
 def structure_from_motion(homo_points_in_image0, homo_points_in_image1, transform_cam1_wrt_cam0):
-
     T = transform_cam1_wrt_cam0.translation
     R = transform_cam1_wrt_cam0.rotation
-    return []
+    M = np.zeros((3*len(homo_points_in_image1.T), len(homo_points_in_image1.T) + 1))
+    for i, (homo_point_in_image0, homo_point_in_image1) in enumerate(zip(homo_points_in_image0.T, homo_points_in_image1.T)):
+        skew_symetrix_homo_point_in_image0 = translation_to_skew_symetric_mat(homo_point_in_image0)
+        M[3*i: 3*(i+1), i] = skew_symetrix_homo_point_in_image0.dot(R).dot(homo_point_in_image1)
+        M[3*i: 3*(i+1), -1] = skew_symetrix_homo_point_in_image0.dot(T)
+
+    # We need to solve M*Lambda = 0
+    # M (3*n, n+1), Lambda (n+1, 1)
+    # We try to solve least square error problem, minimize |M*Lambda|^2, the solution is the last column of V from svd(M)
+    u, s, vh = np.linalg.svd(M)
+    Lambda = vh.T[:, -1]
+    assert Lambda[-1] != 0
+    # assume scale on translation is 1
+    return homo_points_in_image1 * Lambda[:-1] / Lambda[-1]
