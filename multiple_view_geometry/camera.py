@@ -1,7 +1,7 @@
 import numpy as np
 
-from homogeneous_matrix import HomogeneousMatrix
-from transform_utils import normalize_homogeneous_coordinates, points_to_homogeneous_coordinates
+from .homogeneous_matrix import HomogeneousMatrix
+from .transform_utils import normalize_homogeneous_coordinates, points_to_homogeneous_coordinates
 
 class Camera(object):
     def __init__(self, name, extrinsic, f=350, image_resolution=(1024, 768)):

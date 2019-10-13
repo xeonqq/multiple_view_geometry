@@ -1,8 +1,10 @@
+from .context import multiple_view_geometry
+
 import unittest
 import numpy as np
 
-from scene_fixture import SceneFixture
-from algorithm import triangulate, reconstruct_3d_points
+from .scene_fixture import SceneFixture
+from multiple_view_geometry.algorithm import triangulate, reconstruct_3d_points
 
 
 class TestTriangulation(SceneFixture):

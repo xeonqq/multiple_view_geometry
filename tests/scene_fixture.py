@@ -1,12 +1,13 @@
+from .context import multiple_view_geometry
+
 import unittest
 import numpy as np
 
-from cube import Cube
-from camera import Camera
-from homogeneous_matrix import HomogeneousMatrix
-from transform_utils import create_rotation_mat_from_rpy, points_to_homogeneous_coordinates
-from algorithm import solve_essential_matrix
-
+from multiple_view_geometry.cube import Cube
+from multiple_view_geometry.camera import Camera
+from multiple_view_geometry.homogeneous_matrix import HomogeneousMatrix
+from multiple_view_geometry.transform_utils import create_rotation_mat_from_rpy, points_to_homogeneous_coordinates
+from multiple_view_geometry.algorithm import solve_essential_matrix
 
 class SceneFixture(unittest.TestCase):
     def setUp(self):

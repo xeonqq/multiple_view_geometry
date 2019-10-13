@@ -1,8 +1,10 @@
+from .context import multiple_view_geometry
+
 import unittest
 import numpy as np
 
-from scene_fixture import SceneFixture
-from algorithm import solve_essential_matrix, calculate_essential_matrix, reconstruct_translation_and_rotation_from_svd_of_essential_matrix
+from .scene_fixture import SceneFixture
+from multiple_view_geometry.algorithm import solve_essential_matrix, calculate_essential_matrix, reconstruct_translation_and_rotation_from_svd_of_essential_matrix
 
 class TestEightPointAlgorithm(SceneFixture):
     def test_eight_point_algorithm(self):

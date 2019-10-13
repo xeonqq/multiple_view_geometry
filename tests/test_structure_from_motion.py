@@ -1,8 +1,10 @@
+from .context import multiple_view_geometry
+
 import unittest
 import numpy as np
 
-from scene_fixture import SceneFixture
-from algorithm import structure_from_motion
+from .scene_fixture import SceneFixture
+from multiple_view_geometry.algorithm import structure_from_motion
 
 class TestStuctureFromMotion(SceneFixture):
     def test_structure_from_motion(self):

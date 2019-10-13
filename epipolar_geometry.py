@@ -1,12 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from scene import Scene
-from cube import Cube
-from camera import Camera
-from camera_image_renderer import CameraImageRenderer
-from homogeneous_matrix import HomogeneousMatrix
-from transform_utils import create_rotation_mat_from_rpy
+from multiple_view_geometry.scene import Scene
+from multiple_view_geometry.cube import Cube
+from multiple_view_geometry.camera import Camera
+from multiple_view_geometry.camera_image_renderer import CameraImageRenderer
+from multiple_view_geometry.homogeneous_matrix import HomogeneousMatrix
+from multiple_view_geometry.transform_utils import create_rotation_mat_from_rpy
 
 if __name__ == '__main__':
     camera0_extrinsic = HomogeneousMatrix.create([1.7,0.0,0.5], create_rotation_mat_from_rpy(-np.pi/2, 0, -np.pi/4))

@@ -1,7 +1,7 @@
 import numpy as np
 
-from linear_equation import LinearEquation
-from transform_utils import normalize_homogeneous_coordinates, translation_to_skew_symetric_mat, translation_to_skew_symetric_mat, points_to_homogeneous_coordinates, create_rotation_mat_from_rpy
+from .linear_equation import LinearEquation
+from .transform_utils import normalize_homogeneous_coordinates, translation_to_skew_symetric_mat, translation_to_skew_symetric_mat, points_to_homogeneous_coordinates, create_rotation_mat_from_rpy
 
 def calculate_epipolar_line_on_other_image(point_in_camera_frame, essential_matrix, other_camera):
     epipolar_line_in_camera0 = essential_matrix.dot(point_in_camera_frame)
