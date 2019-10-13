@@ -10,7 +10,7 @@ def calculate_epipolar_line_on_other_image(point_in_camera_frame, essential_matr
     xs = [-2, 2]
     for x in xs:
         line_end_point = np.array([x, lineq.solve_y(x), 1])
-        line_end_point = normalize_homogeneous_coordinates(other_camera.intrinsic[:,:3].dot(line_end_point))
+        line_end_point = normalize_homogeneous_coordinates(other_camera.intrinsic.dot(line_end_point))
         line_end_points.append(line_end_point)
     return np.asarray(line_end_points)
 
