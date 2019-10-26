@@ -33,3 +33,5 @@ def translation_to_skew_symetric_mat(translation):
     a1, a2, a3 = translation
     return np.array([[0, -a3, a2],[a3, 0, -a1],[-a2, a1, 0]])
 
+def skew_symetric_mat_to_translation(skew_symetric_mat):
+    return np.array([skew_symetric_mat[2,1], skew_symetric_mat[0,-1], skew_symetric_mat[1,0]])

@@ -1,7 +1,7 @@
 import numpy as np
 
 from .linear_equation import LinearEquation
-from .transform_utils import normalize_homogeneous_coordinates, translation_to_skew_symetric_mat, translation_to_skew_symetric_mat, points_to_homogeneous_coordinates, create_rotation_mat_from_rpy
+from .transform_utils import normalize_homogeneous_coordinates, translation_to_skew_symetric_mat, translation_to_skew_symetric_mat, points_to_homogeneous_coordinates, create_rotation_mat_from_rpy, skew_symetric_mat_to_translation
 
 def calculate_epipolar_line_on_other_image(point_in_camera_frame, essential_matrix, other_camera):
     epipolar_line_in_camera0 = essential_matrix.dot(point_in_camera_frame)
@@ -86,9 +86,12 @@ def reconstruct_translation_and_rotation_from_svd_of_essential_matrix(u, s, vh):
     T2 = u.dot(Rz_neg).dot(sut)
     R1 = u.dot(Rz.T).dot(vh)
     R2 = u.dot(Rz_neg.T).dot(vh)
-    return T1, R1, T2, R2
+    return skew_symetric_mat_to_translation(T1), R1, skew_symetric_mat_to_translation(T2), R2
 
 def structure_from_motion(homo_points_in_image0, homo_points_in_image1, transform_cam1_wrt_cam0):
+    """
+    Returns: the 3d points in camera1's frame and the scale, asuming the translation scale bewteen the two cameras is 1
+    """
     T = transform_cam1_wrt_cam0.translation
     R = transform_cam1_wrt_cam0.rotation
     M = np.zeros((3*len(homo_points_in_image1.T), len(homo_points_in_image1.T) + 1))
@@ -102,6 +105,10 @@ def structure_from_motion(homo_points_in_image0, homo_points_in_image1, transfor
     # We try to solve least square error problem, minimize |M*Lambda|^2, the solution is the last column of V from svd(M)
     u, s, vh = np.linalg.svd(M)
     Lambda = vh.T[:, -1]
-    assert Lambda[-1] != 0
-    # assume scale on translation is 1
-    return homo_points_in_image1 * Lambda[:-1] / Lambda[-1]
+    has_solution = not np.isclose(Lambda[-1], 0)
+    if has_solution:
+        # assume scale on camera translation is 1
+        scale = Lambda[:-1] / Lambda[-1]
+        return homo_points_in_image1 * scale, scale
+    else:
+        return None, None
