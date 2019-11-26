@@ -9,6 +9,7 @@ from multiple_view_geometry.homogeneous_matrix import HomogeneousMatrix
 from multiple_view_geometry.transform_utils import create_rotation_mat_from_rpy, points_to_homogeneous_coordinates
 from multiple_view_geometry.algorithm import solve_essential_matrix
 
+
 class SceneFixture(unittest.TestCase):
     def setUp(self):
         camera0_extrinsic = HomogeneousMatrix.create([1.7, 0.0, 0.5], \
@@ -22,3 +23,15 @@ class SceneFixture(unittest.TestCase):
         _, self._points_in_image_frame0 = self._camera0.project(self._key_points_cube)
         _, self._points_in_image_frame1 = self._camera1.project(self._key_points_cube)
 
+
+def add_gaussian_noise(points, mean, variance):
+    noise = np.random.normal(mean, variance, points.shape)
+    return points + noise
+
+class SceneWithNoiseFixture(SceneFixture):
+    def setUp(self):
+        SceneFixture.setUp(self);
+        np.random.seed(1)
+        mean, variance = 0, 2
+        self._points_in_image_frame0 = add_gaussian_noise(self._points_in_image_frame0, mean, variance)
+        self._points_in_image_frame1 = add_gaussian_noise(self._points_in_image_frame1, mean, variance)
