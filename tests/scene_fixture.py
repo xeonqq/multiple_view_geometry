@@ -32,6 +32,6 @@ class SceneWithNoiseFixture(SceneFixture):
     def setUp(self):
         SceneFixture.setUp(self);
         np.random.seed(1)
-        mean, variance = 0, 2
+        mean, variance = 0, 0.0
         self._points_in_image_frame0 = add_gaussian_noise(self._points_in_image_frame0, mean, variance)
         self._points_in_image_frame1 = add_gaussian_noise(self._points_in_image_frame1, mean, variance)
