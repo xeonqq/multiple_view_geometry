@@ -88,9 +88,17 @@ def reconstruct_translation_and_rotation_from_svd_of_essential_matrix(u, s, vh):
     R2 = u.dot(Rz_neg.T).dot(vh)
     return skew_symetric_mat_to_translation(T1), R1, skew_symetric_mat_to_translation(T2), R2
 
+def structure_from_motion_options(homo_points_in_image0, homo_points_in_image1, transform_cam1_wrt_cam0_option1, transform_cam1_wrt_cam0_option2):
+    depth_scale_in_camera1 = structure_from_motion(homo_points_in_image0, homo_points_in_image1, transform_cam1_wrt_cam0_option1)
+    correct_transform_option = transform_cam1_wrt_cam0_option1
+    if depth_scale_in_camera1 is None or not (depth_scale_in_camera1 > 0).all():
+        correct_transform_option = transform_cam1_wrt_cam0_option2
+        depth_scale_in_camera1 = structure_from_motion(homo_points_in_image0, homo_points_in_image1, transform_cam1_wrt_cam0_option2)
+    return correct_transform_option, depth_scale_in_camera1
+
 def structure_from_motion(homo_points_in_image0, homo_points_in_image1, transform_cam1_wrt_cam0):
     """
-    Returns: the 3d points in camera1's frame and the scale, asuming the translation scale bewteen the two cameras is 1
+    Returns: the 3d points in camera1's frame and the scale, assuming the translation scale between the two cameras is 1
     """
     T = transform_cam1_wrt_cam0.translation
     R = transform_cam1_wrt_cam0.rotation
@@ -108,7 +116,7 @@ def structure_from_motion(homo_points_in_image0, homo_points_in_image1, transfor
     has_solution = not np.isclose(Lambda[-1], 0)
     if has_solution:
         # assume scale on camera translation is 1
-        scale = Lambda[:-1] / Lambda[-1]
-        return homo_points_in_image1 * scale, scale
+        depth_scale_in_camera1 = Lambda[:-1] / Lambda[-1]
+        return depth_scale_in_camera1
     else:
-        return None, None
+        return None
