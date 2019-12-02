@@ -34,29 +34,32 @@ class TestBundleAdjustment(SceneWithNoiseFixture):
 
         bundle_adjustment = BundleAjustment()
         bundle_adjustment.add_camera_parameters(self._camera0.focal_length_in_pixels, self._camera0.pixel_center)
-        bundle_adjustment.add_pose(0, g2o.SE3Quat(np.zeros(6)), fixed=True)
+        bundle_adjustment.add_pose(0, g2o.SE3Quat(R=np.identity(3), t=np.zeros(3)), fixed=True)
         bundle_adjustment.add_pose(1, g2o.SE3Quat(R=transform_cam1_wrt_cam0.rotation,
                                                   t=transform_cam1_wrt_cam0.translation))
 
+        points_id = np.arange(0, len(points_3d_in_camera_frame0.T))+2
+
+        for point_id, point_3d in zip(points_id, points_3d_in_camera_frame0.T):
+            bundle_adjustment.add_point(point_id, point_3d)
+
         pose_id_to_points_map = {
-            0: (points_3d_in_camera_frame0.T, self._points_in_image_frame0.T),
-            1: (points_3d_in_camera_frame1.T, self._points_in_image_frame1.T)}
+            0: (points_id, points_3d_in_camera_frame0.T, self._points_in_image_frame0.T),
+            1: (points_id, points_3d_in_camera_frame0.T, self._points_in_image_frame1.T)}
+        for pose_id, bundle in pose_id_to_points_map.items():
+            for point_id, point_3d, measured_point_2d in zip(*bundle):
+                bundle_adjustment.add_edge(point_id, pose_id, measured_point_2d, information=np.identity(2)*2)
 
-        point_id = 2
-        for pose_id, (points_3d, measured_points_2d) in pose_id_to_points_map.items():
-            for point_3d, measured_point_2d in zip(points_3d, measured_points_2d):
-                bundle_adjustment.add_point(point_id, point_3d)
-                bundle_adjustment.add_edge(point_id, pose_id, measured_point_2d, information=np.identity(2))
-                point_id += 1
-
-        bundle_adjustment.optimize()
+        bundle_adjustment.optimize(iterations=77)
 
         transform_cam1_wrt_cam0_bundle_adjustment = HomogeneousMatrix(bundle_adjustment.vertex_estimate(1).matrix()[:3,:4])
+
 
         # test the recovered translation and rotation is the same as the ground truth
         scale = 3./5
         ground_truth_transform = self._camera1.get_transform_wrt(self._camera0)
         # rotation and translation estimated by bundle adjustment
+        # np.testing.assert_array_almost_equal(transform_cam1_wrt_cam0_bundle_adjustment.translation, ground_truth_transform.translation)
         # np.testing.assert_array_almost_equal(transform_cam1_wrt_cam0_bundle_adjustment.rotation, ground_truth_transform.rotation)
 
         # rotation and translation estimated by 8 point algorithm
