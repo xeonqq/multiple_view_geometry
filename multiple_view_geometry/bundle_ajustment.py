@@ -44,7 +44,7 @@ class BundleAjustment(object):
         self._optimizer.add_edge(edge)
 
     def optimize(self, iterations=10, verbose=True):
-        self._optimizer.set_verbose(True)
+        self._optimizer.set_verbose(verbose)
         self._optimizer.initialize_optimization()
 
         self._optimizer.optimize(iterations)
