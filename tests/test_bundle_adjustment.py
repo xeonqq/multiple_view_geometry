@@ -4,13 +4,16 @@ import numpy as np
 import g2o
 
 from .scene_fixture import SceneWithNoiseFixture
-from multiple_view_geometry.algorithm import solve_essential_matrix, calculate_essential_matrix, reconstruct_translation_and_rotation_from_svd_of_essential_matrix, structure_from_motion_options
+from multiple_view_geometry.algorithm import solve_essential_matrix, reconstruct_translation_and_rotation_from_svd_of_essential_matrix, structure_from_motion_options
 from multiple_view_geometry.homogeneous_matrix import HomogeneousMatrix
 from multiple_view_geometry.bundle_ajustment import BundleAjustment
+from multiple_view_geometry.transform_utils import euler_angles_from_rotation_matrix
 
 
 class TestBundleAdjustment(SceneWithNoiseFixture):
-    def test_bundle_adjustment(self):
+
+    def test_bundle_adjustment_when_initial_condition_given_by_eight_point_algorithm(self):
+        self.add_noise_in_pixel(0, 0.0)
         self.assertGreaterEqual(self._key_points_cube.shape[1], 8)
         # we know the points are not all on the same surface
         # and we use more than 8 points here to guarentee that rank of A is larger than 8
@@ -33,10 +36,14 @@ class TestBundleAdjustment(SceneWithNoiseFixture):
                                      transform_cam1_wrt_cam0.translation[:, np.newaxis]
 
         bundle_adjustment = BundleAjustment()
+        transform_cam0_wrt_cam1 = HomogeneousMatrix(transform_cam1_wrt_cam0.inv())
         bundle_adjustment.add_camera_parameters(self._camera0.focal_length_in_pixels, self._camera0.pixel_center)
+        # First camera frame0 is regarded as the origin of the world
         bundle_adjustment.add_pose(0, g2o.SE3Quat(R=np.identity(3), t=np.zeros(3)), fixed=True)
-        bundle_adjustment.add_pose(1, g2o.SE3Quat(R=transform_cam1_wrt_cam0.rotation,
-                                                  t=transform_cam1_wrt_cam0.translation))
+        # IMPORTANT NOTE: rotation and translation of pose is described as world wrt to pose
+        bundle_adjustment.add_pose(1, g2o.SE3Quat(R=transform_cam0_wrt_cam1.rotation,
+                                                  t=transform_cam0_wrt_cam1.translation))
+
 
         points_id = np.arange(0, len(points_3d_in_camera_frame0.T))+2
 
@@ -44,24 +51,29 @@ class TestBundleAdjustment(SceneWithNoiseFixture):
             bundle_adjustment.add_point(point_id, point_3d)
 
         pose_id_to_points_map = {
-            0: (points_id, points_3d_in_camera_frame0.T, self._points_in_image_frame0.T),
-            1: (points_id, points_3d_in_camera_frame0.T, self._points_in_image_frame1.T)}
+            0: (points_id, self._points_in_image_frame0.T),
+            1: (points_id, self._points_in_image_frame1.T)}
         for pose_id, bundle in pose_id_to_points_map.items():
-            for point_id, point_3d, measured_point_2d in zip(*bundle):
+            for point_id, measured_point_2d in zip(*bundle):
                 bundle_adjustment.add_edge(point_id, pose_id, measured_point_2d, information=np.identity(2)*2)
 
-        bundle_adjustment.optimize(iterations=77)
+        bundle_adjustment.optimize(verbose=False)
 
-        transform_cam1_wrt_cam0_bundle_adjustment = HomogeneousMatrix(bundle_adjustment.vertex_estimate(1).matrix()[:3,:4])
+        transform_cam0_wrt_cam1_bundle_adjustment = HomogeneousMatrix(bundle_adjustment.vertex_estimate(1).matrix()[:3,:4])
 
 
         # test the recovered translation and rotation is the same as the ground truth
         scale = 3./5
-        ground_truth_transform = self._camera1.get_transform_wrt(self._camera0)
+        ground_truth_transform = self._camera0.get_transform_wrt(self._camera1)
         # rotation and translation estimated by bundle adjustment
-        # np.testing.assert_array_almost_equal(transform_cam1_wrt_cam0_bundle_adjustment.translation, ground_truth_transform.translation)
-        # np.testing.assert_array_almost_equal(transform_cam1_wrt_cam0_bundle_adjustment.rotation, ground_truth_transform.rotation)
+        np.testing.assert_array_almost_equal(transform_cam0_wrt_cam1_bundle_adjustment.translation*scale, ground_truth_transform.translation)
+        np.testing.assert_array_almost_equal(transform_cam0_wrt_cam1_bundle_adjustment.rotation, ground_truth_transform.rotation)
+
+        # ba_ax, ba_ay, ba_az = euler_angles_from_rotation_matrix(transform_cam0_wrt_cam1_bundle_adjustment.rotation)
+        # gt_ax, gt_ay, gt_az = euler_angles_from_rotation_matrix(ground_truth_transform.rotation)
+        # np.testing.assert_array_almost_equal([ba_ax, ba_ay, ba_az], [gt_ax, gt_ay, gt_az])
+
 
         # rotation and translation estimated by 8 point algorithm
-        np.testing.assert_array_almost_equal(transform_cam1_wrt_cam0.rotation, ground_truth_transform.rotation)
-        np.testing.assert_array_almost_equal(transform_cam1_wrt_cam0.translation*scale, ground_truth_transform.translation)
+        # np.testing.assert_array_almost_equal(transform_cam0_wrt_cam1.rotation, ground_truth_transform.rotation)
+        # np.testing.assert_array_almost_equal(transform_cam0_wrt_cam1.translation*scale, ground_truth_transform.translation)

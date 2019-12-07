@@ -13,6 +13,7 @@ class BundleAjustment(object):
         camera_parameter = g2o.CameraParameters(focal_length, principle_point, 0)
         camera_parameter.set_id(0)
         self._optimizer.add_parameter(camera_parameter)
+        return camera_parameter
 
     def add_pose(self, pose_id, pose, fixed=False):
         vertex_se3 = g2o.VertexSE3Expmap()
@@ -46,12 +47,14 @@ class BundleAjustment(object):
     def optimize(self, iterations=10, verbose=True):
         self._optimizer.set_verbose(verbose)
         self._optimizer.initialize_optimization()
-
         self._optimizer.optimize(iterations)
 
     def vertex_estimate(self, vertex_id):
         vertex = self._optimizer.vertex(vertex_id)
         return vertex.estimate()
+
+    def vertex(self, vertex_id):
+        return self._optimizer.vertex(vertex_id)
 
 
 
