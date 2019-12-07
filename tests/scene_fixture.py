@@ -28,6 +28,12 @@ def add_gaussian_noise(points, mean, variance):
     noise = np.random.normal(mean, variance, points.shape)
     return points + noise
 
+def add_gaussian_noise_to_homogeneous_matrix(mat, rotation_mean, rotation_variance, translation_mean, translation_variance):
+    noisy_rotation = add_gaussian_noise(mat.rotation, rotation_mean, rotation_variance)
+    noisy_translation = add_gaussian_noise(mat.translation, translation_mean, translation_variance)
+    return HomogeneousMatrix.create(noisy_translation, noisy_rotation)
+
+
 class SceneWithNoiseFixture(SceneFixture):
     def setUp(self):
         SceneFixture.setUp(self)
@@ -36,3 +42,6 @@ class SceneWithNoiseFixture(SceneFixture):
     def add_noise_in_pixel(self, mean, variance):
         self._points_in_image_frame0 = add_gaussian_noise(self._points_in_image_frame0, mean, variance)
         self._points_in_image_frame1 = add_gaussian_noise(self._points_in_image_frame1, mean, variance)
+
+    def add_noise_in_3d_points(self, mean, variance):
+        self._key_points_cube = add_gaussian_noise(self._key_points_cube, mean, variance)
