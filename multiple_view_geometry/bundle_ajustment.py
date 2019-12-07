@@ -30,15 +30,19 @@ class BundleAjustment(object):
         vertex_xyz.set_fixed(fixed)
         self._optimizer.add_vertex(vertex_xyz)
 
-    def add_edge(self, point_id, pose_id,
-                 measurement,
-                 information=np.identity(2),
-                 robust_kernel=g2o.RobustKernelHuber(np.sqrt(5.991))):
+    def add_edge(
+        self,
+        point_id,
+        pose_id,
+        measurement,
+        information=np.identity(2),
+        robust_kernel=g2o.RobustKernelHuber(np.sqrt(5.991)),
+    ):
         edge = g2o.EdgeProjectXYZ2UV()
         edge.set_parameter_id(0, 0)
         edge.set_vertex(0, self._optimizer.vertex(point_id))
         edge.set_vertex(1, self._optimizer.vertex(pose_id))
-        edge.set_measurement(measurement)   # pixel point (u,v)
+        edge.set_measurement(measurement)  # pixel point (u,v)
         edge.set_information(information)
 
         edge.set_robust_kernel(robust_kernel)
@@ -55,6 +59,3 @@ class BundleAjustment(object):
 
     def vertex(self, vertex_id):
         return self._optimizer.vertex(vertex_id)
-
-
-

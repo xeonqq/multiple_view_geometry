@@ -1,5 +1,6 @@
 from .algorithm import calculate_epipolar_line_on_other_image, calculate_essential_matrix
 
+
 class Scene(object):
     def __init__(self, cube, cameras, renderer):
         self._cube = cube
@@ -25,6 +26,3 @@ class Scene(object):
         for p in lists_of_points_in_camera_frame[0].T:
             line = calculate_epipolar_line_on_other_image(p, essential_matrix_cam0, self._cameras[1])
             self._renderer.render_epipolar_line(line, self._cameras[1], interactive)
-
-
-
