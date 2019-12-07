@@ -30,3 +30,6 @@ class HomogeneousMatrix(object):
         inverse_mat[:3, :3] = self.rotation.T
         inverse_mat[:3, 3] = -(self.rotation.T).dot(self.translation)
         return inverse_mat
+
+    def __mul__(self, points):
+        return self.rotation.dot(points) + self.translation[:, np.newaxis]
