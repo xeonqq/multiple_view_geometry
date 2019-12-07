@@ -47,4 +47,4 @@ class SceneWithNoiseFixture(SceneFixture):
         self._points_in_image_frame1 = add_gaussian_noise(self._points_in_image_frame1, mean, variance)
 
     def add_noise_in_3d_points(self, mean, variance):
-        self._key_points_cube = add_gaussian_noise(self._key_points_cube, mean, variance)
+        return add_gaussian_noise(self._key_points_cube, mean, variance)

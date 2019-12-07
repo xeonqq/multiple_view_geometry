@@ -14,23 +14,27 @@ from multiple_view_geometry.bundle_ajustment import BundleAjustment
 
 
 class TestBundleAdjustment(SceneWithNoiseFixture):
-    def compute_transform_cam0_wrt_cam1_by_bundle_adjustment(
+    def setUp(self):
+        SceneWithNoiseFixture.setUp(self)
+        self._bundle_adjustment = BundleAjustment()
+        self._points_3d_initial_index = 2
+
+    def _compute_transform_cam0_wrt_cam1_by_bundle_adjustment(
         self, transform_cam0_wrt_cam1, points_3d_in_camera_frame0, iterations=10, verbose=False
     ):
 
-        bundle_adjustment = BundleAjustment()
-        bundle_adjustment.add_camera_parameters(self._camera0.focal_length_in_pixels, self._camera0.pixel_center)
+        self._bundle_adjustment.add_camera_parameters(self._camera0.focal_length_in_pixels, self._camera0.pixel_center)
         # First camera frame0 is regarded as the origin of the world
-        bundle_adjustment.add_pose(0, g2o.SE3Quat(R=np.identity(3), t=np.zeros(3)), fixed=True)
+        self._bundle_adjustment.add_pose(0, g2o.SE3Quat(R=np.identity(3), t=np.zeros(3)), fixed=True)
         # IMPORTANT NOTE: rotation and translation of pose is described as world wrt to pose
-        bundle_adjustment.add_pose(
+        self._bundle_adjustment.add_pose(
             1, g2o.SE3Quat(R=transform_cam0_wrt_cam1.rotation, t=transform_cam0_wrt_cam1.translation)
         )
 
-        points_id = np.arange(0, len(points_3d_in_camera_frame0.T)) + 2
+        points_id = np.arange(len(points_3d_in_camera_frame0.T)) + self._points_3d_initial_index
 
         for point_id, point_3d in zip(points_id, points_3d_in_camera_frame0.T):
-            bundle_adjustment.add_point(point_id, point_3d)
+            self._bundle_adjustment.add_point(point_id, point_3d)
 
         pose_id_to_points_map = {
             0: (points_id, self._points_in_image_frame0.T),
@@ -38,11 +42,14 @@ class TestBundleAdjustment(SceneWithNoiseFixture):
         }
         for pose_id, bundle in pose_id_to_points_map.items():
             for point_id, measured_point_2d in zip(*bundle):
-                bundle_adjustment.add_edge(point_id, pose_id, measured_point_2d, information=np.identity(2))
+                self._bundle_adjustment.add_edge(point_id, pose_id, measured_point_2d, information=np.identity(2))
 
-        bundle_adjustment.optimize(iterations, verbose)
+        self._bundle_adjustment.optimize(iterations, verbose)
 
-        return HomogeneousMatrix(bundle_adjustment.vertex_estimate(1).matrix()[:3, :4])
+        return HomogeneousMatrix(self._bundle_adjustment.vertex_estimate(1).matrix()[:3, :4])
+
+    def _mse_key_points_cube(self, noisy_key_points_cube):
+        return ((self._key_points_cube - noisy_key_points_cube) ** 2).mean()
 
     def test_bundle_adjustment_when_initial_condition_given_by_eight_point_algorithm(self):
         self.add_noise_in_pixel(0, 0.0)
@@ -70,13 +77,10 @@ class TestBundleAdjustment(SceneWithNoiseFixture):
         )
 
         points_3d_in_camera_frame1 = points_depth_scale_in_cam1 * homegeneous_points_in_camera_frame1
-        points_3d_in_camera_frame0 = (
-            transform_cam1_wrt_cam0.rotation.dot(points_3d_in_camera_frame1)
-            + transform_cam1_wrt_cam0.translation[:, np.newaxis]
-        )
+        points_3d_in_camera_frame0 = transform_cam1_wrt_cam0 * points_3d_in_camera_frame1
 
         transform_cam0_wrt_cam1 = HomogeneousMatrix(transform_cam1_wrt_cam0.inv())
-        transform_cam0_wrt_cam1_bundle_adjustment = self.compute_transform_cam0_wrt_cam1_by_bundle_adjustment(
+        transform_cam0_wrt_cam1_bundle_adjustment = self._compute_transform_cam0_wrt_cam1_by_bundle_adjustment(
             transform_cam0_wrt_cam1, points_3d_in_camera_frame0
         )
 
@@ -93,14 +97,14 @@ class TestBundleAdjustment(SceneWithNoiseFixture):
 
     def test_bundle_adjustment_when_initial_condition_given_by_groundtruth_with_noise(self):
         self.add_noise_in_pixel(0, 2)
-        self.add_noise_in_3d_points(0, 0.2)
+        noisy_key_points_cube = self.add_noise_in_3d_points(0, 0.2)
 
         gt_transform_cam0_wrt_cam1 = self._camera0.get_transform_wrt(self._camera1)
         noisy_transform_cam0_wrt_cam1 = add_gaussian_noise_to_homogeneous_matrix(
             gt_transform_cam0_wrt_cam1, 0, 0.05, 0, 0.2
         )
-        noisy_3d_points_in_camera0 = self._camera0.world_frame_to_camera_frame(self._key_points_cube)
-        transform_cam0_wrt_cam1_bundle_adjustment = self.compute_transform_cam0_wrt_cam1_by_bundle_adjustment(
+        noisy_3d_points_in_camera0 = self._camera0.world_frame_to_camera_frame(noisy_key_points_cube)
+        transform_cam0_wrt_cam1_bundle_adjustment = self._compute_transform_cam0_wrt_cam1_by_bundle_adjustment(
             noisy_transform_cam0_wrt_cam1, noisy_3d_points_in_camera0
         )
 
@@ -110,3 +114,14 @@ class TestBundleAdjustment(SceneWithNoiseFixture):
         np.testing.assert_array_almost_equal(
             transform_cam0_wrt_cam1_bundle_adjustment.rotation, gt_transform_cam0_wrt_cam1.rotation, decimal=0.1
         )
+
+        mse_before_ba = self._mse_key_points_cube(noisy_key_points_cube)
+        ba_points_wrt_cam0 = np.asarray(
+            [
+                self._bundle_adjustment.vertex_estimate(i)
+                for i in np.arange(len(self._key_points_cube.T)) + self._points_3d_initial_index
+            ]
+        )
+        ba_points_wrt_world = self._camera0.extrinsic * ba_points_wrt_cam0.T
+        mse_after_ba = self._mse_key_points_cube(ba_points_wrt_world)
+        self.assertLess(mse_after_ba, mse_before_ba)
