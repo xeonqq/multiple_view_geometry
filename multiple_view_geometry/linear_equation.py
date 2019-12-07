@@ -8,9 +8,7 @@ class LinearEquation(object):
             a, b, c = self._coefficents
             assert b != 0
         else:
-            a = self._coefficents[:,:2]
-            b = self._coefficents[:,:2]
-            c = self._coefficents[:,:2]
-        return (-c-x*a)/b
-
-
+            a = self._coefficents[:, :2]
+            b = self._coefficents[:, :2]
+            c = self._coefficents[:, :2]
+        return (-c - x * a) / b
