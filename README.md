@@ -38,7 +38,7 @@ jupyter notebook epipolar_geometry.ipynb
 #### Then:
  * Calculate the 3d position of the observed points in world frame, by solving a least square error problem
  
-### 4. [Bundle adjustment](tests/test_bundle_adjustment.py.py)
+### 4. [Bundle adjustment](tests/test_bundle_adjustment.py)
 #### Given
  * Initial guess of the two camera poses in world frame
  * Noisy observation of points correspondence in image frame
