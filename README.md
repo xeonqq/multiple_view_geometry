@@ -1,5 +1,4 @@
 ## Multi view geometry key concepts in Python
-[![Build Status](https://travis-ci.com/xeonqq/multiple_view_geometry.svg?branch=master)](https://travis-ci.com/xeonqq/multiple_view_geometry) [![Total alerts](https://img.shields.io/lgtm/alerts/g/xeonqq/multiple_view_geometry.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/xeonqq/multiple_view_geometry/alerts/)
 
 ### 1. Demo on how to calculate epipolar line
 #### Given: 
