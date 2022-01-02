@@ -7,7 +7,7 @@ cd /tmp/g2opy
 mkdir build
 cd build
 cmake -DPYTHON_EXECUTABLE=$(which python) ..
-make -j8
+make VERBOSE=1
 cd ..
 python setup.py install
 
